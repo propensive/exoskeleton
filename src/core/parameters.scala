@@ -19,10 +19,8 @@
 */
 package exoskeleton
 
-import scala.util.Try
+import scala.util._
 import scala.annotation._
-import mitigation._
-import totalitarian.ident.Disjunct
 
 case class ParamUsage(map: ParamMap, used: Set[String]) {
   def -(key: String): ParamUsage = copy(used = used + key)
@@ -87,22 +85,22 @@ case class ParamMap(args: String*) {
     case h +: t => find(h) orElse apply(t)
   }
 
-  def get[T](param: SimpleParam[T]): Result[T, ~ | MissingArg | InvalidArgValue] =
+  def get[T](param: SimpleParam[T]): Try[T] =
     groups.find(param.keys contains _.key()) match {
       case Some(p) => param.extractor.extract(p.values.map(_())) match {
-        case Some(p) => Answer(p)
-        case None => Aborted(Disjunct(InvalidArgValue(param.toString, p.values.map(_()).mkString(" "))))
+        case Some(p) => Success(p)
+        case None => Failure(InvalidArgValue(param.toString, p.values.map(_()).mkString(" ")))
       }
-      case None => Aborted(Disjunct(MissingArg(param.toString)))
+      case None => Failure(MissingArg(param.toString))
     }
 
-  def apply[T: Default](param: SimpleParam[T]): Result[T, ~ | MissingArg | InvalidArgValue] = {
+  def apply[T: Default](param: SimpleParam[T]): Try[T] = {
     groups.find(param.keys contains _.key()) match {
       case Some(p) => param.extractor.extract(p.values.map(_())) match {
-        case Some(p) => Answer(p)
-        case None => Errata(implicitly[Default[T]].default, Disjunct(InvalidArgValue(param.toString, p.values.map(_()).mkString(" "))))
+        case Some(p) => Success(p)
+        case None => Failure(InvalidArgValue(param.toString, p.values.map(_()).mkString(" ")))
       }
-      case None => Errata(implicitly[Default[T]].default, Disjunct(MissingArg(param.toString)))
+      case None => Failure(MissingArg(param.toString))
     }
   }
   
