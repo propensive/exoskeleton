@@ -384,6 +384,10 @@ object Param {
       def extract(values: Vector[String]): Option[String] = Some(values.mkString(" "))
     }
 
+    implicit val stringListExtractor: Extractor[List[String]] = new Extractor[List[String]] {
+      def extract(values: Vector[String]): Option[List[String]] = Some(values.to[List])
+    }
+
     implicit val intExtractor: Extractor[Int] = new Extractor[Int] {
       def extract(values: Vector[String]): Option[Int] = values match {
         case Vector(v) =>
