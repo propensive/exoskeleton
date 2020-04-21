@@ -1,20 +1,33 @@
-PROJECT = exoskeleton
-DEPENDENCIES =
-MODULES = core
+SHELLS=zsh bash fish
 
-lib/$(PROJECT).jar: lib compile
-	jar -cf lib/$(PROJECT).jar -C bin $(PROJECT)
+test: test.zsh test.bash test.fish
+	@printf "\e[34m\e[4m                                                                                \n\e[0m"
 
-lib/%.jar: lib
-	cd $* && make
-	cp $*/lib/*.jar lib/
+test.%: .tmp/%/_cmd .tmp/bin/cmd
+	@printf "\e[34m\e[4m                                                                                \e[0m"
+	@printf "\r\e[C\e[C\e[0;34m\e[4m$*\e[24m\n\e[0m" 
+	@etc/capture $* 'cmd '
+	@etc/capture $* 'cmd t'
+	@etc/capture $* 'cmd th'
+	@etc/capture $* 'cmd   something   t'
 
-lib:
-	mkdir -p lib
+.tmp/bin/cmd: etc/cmd
+	@mkdir -p .tmp/bin
+	@cp etc/cmd .tmp/bin/cmd
 
-compile: $(DEPENDENCIES)
-	@scalac -version | grep 'version 2\.12\.' > /dev/null || echo "scalac is not version 2.12.x"
-	mkdir -p bin
-	$(foreach MODULE,$(MODULES),scalac -unchecked -feature -d bin -cp bin:lib/'*' src/$(MODULE)/*.scala;)
+.tmp/lib/exoskeleton-core.jar: $(wildcard src/core/*.scala)
+	@fury build run --output linear --fat-jar --dir .tmp/lib
 
-.PHONY: compile
+clean:
+	@rm -rf .tmp
+
+revise:
+	@etc/revise
+
+.SECONDARY:
+
+.tmp/%/_cmd: .tmp/lib/exoskeleton-core.jar
+	@mkdir -p .tmp/$*
+	@java -cp ".tmp/lib/exoskeleton-core.jar" "exoskeleton.Generate" cmd "$*"
+
+.PHONY: revise test clean
