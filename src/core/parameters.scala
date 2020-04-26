@@ -51,7 +51,7 @@ case class ParamMap(args: String*) {
     private[exoskeleton] def throwIfBad(): Part = {
       if(no < 0 || no >= args.length)
         throw new IllegalStateException(s"Expected a $no-th argument, but it doesn't exist.")
-      else if(start < 0 || start >= end || end >= args(no).length)
+      else if(start < 0 || start > end || end > args(no).length)
         throw new IllegalStateException(s"Substring ($start, $end) is invalid for ${args(no)}.")
       else this
     }
