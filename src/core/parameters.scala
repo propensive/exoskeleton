@@ -48,6 +48,13 @@ case class ParamMap(args: String*) {
 
   case class Part(no: Int, start: Int, end: Int) {
     def apply() = args(no).substring(start, end)
+    private[exoskeleton] def throwIfBad(): Part = {
+      if(no < 0 || no >= args.length)
+        throw new IllegalStateException(s"Expected a $no-th argument, but it doesn't exist.")
+      else if(start < 0 || start >= end || end >= args(no).length)
+        throw new IllegalStateException(s"Substring ($start, $end) is invalid for ${args(no)}.")
+      else this
+    }
   }
 
   case class Parameter(key: Part, values: Vector[Part] = Vector()) {
@@ -66,15 +73,15 @@ case class ParamMap(args: String*) {
       (prefix.reverse, gs.to[Set], args.drop(n + 1).map(Arg(_)).to[Vector])
     } else if (args(n) startsWith "--") {
       val idx = args(n).indexOf('=')
-      if (idx < off) parseArgs(prefix, Parameter(Part(n, 2, args(n).length)) :: gs, n + 1)
-      else parseArgs(prefix, Parameter(Part(n, 2, idx)) :: gs, n, idx + 1)
+      if (idx < off) parseArgs(prefix, Parameter(Part(n, 2, args(n).length).throwIfBad()) :: gs, n + 1)
+      else parseArgs(prefix, Parameter(Part(n, 2, idx).throwIfBad()) :: gs, n, idx + 1)
     } else if (args(n) startsWith "-") {
       if (off == 0) parseArgs(prefix, gs, n, 1)
-      else if (args(n).length == off + 1) parseArgs(prefix, Parameter(Part(n, off, off + 1)) :: gs, n + 1)
-      else parseArgs(prefix, Parameter(Part(n, off, off + 1)) :: gs, n, off + 1)
+      else if (args(n).length == off + 1) parseArgs(prefix, Parameter(Part(n, off, off + 1).throwIfBad()) :: gs, n + 1)
+      else parseArgs(prefix, Parameter(Part(n, off, off + 1).throwIfBad()) :: gs, n, off + 1)
     } else {
       if (gs.isEmpty) parseArgs(Arg(args(n)) +: prefix, gs, n + 1)
-      else parseArgs(prefix, gs.head.copy(values = gs.head.values :+ Part(n, 0, args(n).length)) :: gs.tail, n + 1)
+      else parseArgs(prefix, gs.head.copy(values = gs.head.values :+ Part(n, 0, args(n).length).throwIfBad()) :: gs.tail, n + 1)
     }
   }
 
