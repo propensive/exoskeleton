@@ -1,12 +1,10 @@
+<a href="https://furore.dev/propensive/exoskeleton"><img src="/doc/images/furore.png" style="vertical-align:middle" valign="middle"></a>&nbsp;&nbsp;<a href="https://furore.dev/propensive/exoskeleton">__Develop Exoskeleton with Fury__ </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://riot.im/app/#/room/#propensive.exoskeleton:matrix.org"><img src="/doc/images/riotim.png" style="vertical-arign:middle" valign="middle"></a>&nbsp;&nbsp;<a href="https://riot.im/app/#/room/#propensive.exoskeleton:matrix.org">__Discuss Exoskeleton on Riot__</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://search.maven.org/search?q=g:com.propensive%20AND%20a:exoskeleton_2.12"><img src="/doc/images/mavencentral.png" style="vertical-arign:middle" valign="middle"></a>&nbsp;&nbsp;<a href="https://search.maven.org/search?q=g:com.propensive%20AND%20a:exoskeleton_2.12">__Get Exoskeleton from Maven Central__</a>
+
+<img src="/doc/images/github.png" valign="middle">
+
 # Exoskeleton
 
-Exoskeleton is a Scala library for to make it easy to write command-line applications which
-interact through tab-completion in
-[`bash`](https://www.gnu.org/software/bash/),
-[`zsh`](http://zsh.sourceforge.net/) and [`fish`](https://fishshell.com/) by
-implementing a simple,
-[functional](https://en.wikipedia.org/wiki/Functional_programming) API to
-define the execution of parameters.
+Exoskeleton is a Scala library for to make it easy to write command-line applications which interact through tab-completion in [`bash`](https://www.gnu.org/software/bash/), [`zsh`](http://zsh.sourceforge.net/) and [`fish`](https://fishshell.com/) by implementing a simple, [functional](https://en.wikipedia.org/wiki/Functional_programming) API to define the execution of parameters.
 
 ## Features
 
@@ -19,7 +17,8 @@ define the execution of parameters.
 - can be used with [GraalVM](https://www.graalvm.org/) to eliminate JVM
   startup time
 
-## Usage
+
+## Getting Started
 
 Exoskeleton provides the `Application` trait, akin to `App` in the Scala
 Standard Library. In addition to a `main` method, the `Application` trait
@@ -27,7 +26,7 @@ defines a `complete` method, which should be implemented to return a sequence
 of tab-completions based on the current state of the command-line, which is
 passed in as an input parameter.
 
-## Explanation
+### Explanation
 
 For a shell to offer tab-completions for a command to the user, it needs to
 find definitions for the possible ways of completing the arguments to that
@@ -62,30 +61,40 @@ where _shell_ is one of `bash`, `zsh` and `fish`, _command_ is the name of
 the command that completions are being provided for, and _dir_ is the
 directory in which the script should be written.
 
-## Building from Source
 
-Exoskeleton is built using [Fury](https://github.com/propensive/fury). If you
-have Fury installed, running `fury` inside the repository directory will
-compile and package the `exoskeleton.jar` file. If you don’t have Fury
-installed, running `make` will install download and install a version
-locally, before building `exoskeleton.jar`.
+## Availability
 
-## Testing
+Exoskeleton&rsquo;s source is available on GitHub, and may be built with [Fury](https://github.com/propensive/fury) by
+cloning the layer `propensive/exoskeleton`.
+```
+fury layer clone -i propensive/exoskeleton
+```
+or imported into an existing layer with,
+```
+fury layer import -i propensive/exoskeleton
+```
+A binary will be made available on Maven Central.
 
-Exoskeleton has a number of tests to check the consistent behavior
-of different shells. These tests simulate user interaction within each shell,
-using [`tmux`](https://github.com/tmux/tmux/wiki), and comparing the contents
-of the terminal after the `tab` key is pressed with expected output.
+## Contributing
 
-## Copyright
+Contributors to Exoskeleton are welcome and encouraged. New contributors may like to look for issues marked
+<a href="https://github.com/propensive/exoskeleton/labels/good%20first%20issue"><img alt="label: good first issue"
+src="https://img.shields.io/badge/-good%20first%20issue-67b6d0.svg" valign="middle"></a>.
 
-© Copyright 2020 Jon Pretty, Propensive OÜ.
+We suggest that all contributors read the [Contributing Guide](/contributing.md) to make the process of
+contributing to Exoskeleton easier.
 
-Exoskeleton is licensed under the [Apache License, Version
-2.0](https://www.apache.org/licenses/LICENSE-2.0).
+Please __do not__ contact project maintainers privately with questions, as other users cannot then benefit from
+the answers.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an **“as is” basis,
-without warranties or conditions of any kind**, either express or implied.
-See [the License](https://www.apache.org/licenses/LICENSE-2.0) for the specific
-language governing permissions and limitations under the License.
+## Author
+
+Exoskeleton was designed and developed by [Jon Pretty](https://twitter.com/propensive), and commercial support and
+training is available from [Propensive O&Uuml;](https://propensive.com/).
+
+
+
+## License
+
+Exoskeleton is copyright &copy; 2017-20 Jon Pretty & Propensive O&Uuml;, and is made available under the
+[Apache 2.0 License](/license.md).
