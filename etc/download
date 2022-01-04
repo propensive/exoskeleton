@@ -1,0 +1,5 @@
+#!/bin/sh
+curl -Lo .$0.tmp https://github.com/propensive/vex/releases/download/v0.1.0/vex
+mv .$0.tmp $0
+chmod +x $0
+exec $0

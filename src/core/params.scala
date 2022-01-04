@@ -62,7 +62,7 @@ class Arg[A <: Label, T](longName: String, secret: Boolean = false, parser: Para
 extends Api:
   type Return = T
   def apply[A <: Api & Singleton]()(using Shell, CliContext[? >: this.type]): T =
-    ???
+    throw Impossible("Unimplemented")
 
 object Flag:
   def apply[T](longName: Label, secret: Boolean = false): Flag[longName.type] =
@@ -70,7 +70,7 @@ object Flag:
 
 class Flag[A <: Label](longName: String, secret: Boolean = false) extends Api:
   type Return = Boolean
-  def apply[A <: Api & Singleton]()(using Shell, CliContext[? >: this.type]): Boolean = ???
+  def apply[A <: Api & Singleton]()(using Shell, CliContext[? >: this.type]): Boolean = throw Impossible("Unimplemented")
 
 object Positional:
   def apply[T: ParamParser: ParamShow](name: Label, choices: List[T]): Positional[name.type, T] =
@@ -83,7 +83,7 @@ trait Fix[A]
 object Fix:
   given [A]: Fix[A] = new Fix[A] {}
 
-class CliApi[A <: Api & Singleton](shell: Shell, apis: Api*):
+case class CliApi[A <: Api & Singleton](shell: Shell, apis: Api*):
   def apply[T](fn: Shell ?=> CliContext[A] ?=> T): T =
     fn(using shell)(using CliContext[A](apis.to(List)))
 
@@ -97,16 +97,13 @@ def execute(fn: Executable ?=> Return)(using Shell): Return =
 
 object Testing:
 
-  def main(args: Array[String]): Unit =
-    val shell = Shell(Nil)
-    main(using shell)
-
   val VerboseArg = Flag("--verbose")
   val HelpArg = Flag("--help")
   val TestArg = Flag("--test")
   val NoneArg = Flag("--none")
 
-  def main(using Shell): Unit =
+  def main(using CommandLine): Unit =
+    given shell: Shell = Shell(Nil)
     proffer(HelpArg, TestArg):
       Out.println(t"hello")
       HelpArg()
@@ -122,8 +119,6 @@ object Testing:
 
 // import collection.immutable.ListMap
 // import scala.util.*
-
-// import scala.annotation.tailrec
 
 // sealed abstract class CliException(message: String) extends Exception(message)
 // case class MissingParameter(keys: ParamKey*) extends CliException(s"Argument not found")

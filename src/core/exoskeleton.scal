@@ -62,12 +62,11 @@ object Generate extends Application:
     case 3 => Completions(Nil, t"Please specify the directory in which to install the file")
     case _ => Completions(Nil, t"No more parameters")
 
-case class Shell(args: IArray[Text], environment: Map[Text, Text], properties: Map[Text, Text])
+case class Shell(args: IArray[Text], environment: Map[Text, Text])
 
 case class Cli(command: Text,
                args: List[Text],
                environment: Map[Text, Text],
-               properties: Map[Text, Text],
                index: Int):
   def currentArg: Text = args.lift(index).getOrElse(t"")
 
@@ -77,9 +76,6 @@ case class Completions(defs: List[Choice], title: Maybe[Text] = Unset)
 
 case class Choice(word: Text, description: Maybe[Text] = Unset, hidden: Boolean = false,
                       incomplete: Boolean = false)
-
-object AsInt:
-  def unapply(str: Text): Option[Int] = Try(str.s.toInt).toOption
 
 object ShellType:
   val all: List[ShellType] = List(Zsh, Bash, Fish)
