@@ -23,8 +23,12 @@ import escapade.*
 
 import scala.concurrent.*
 import scala.util.*
+import scala.collection.mutable.HashMap
 
 import java.util.concurrent.atomic.AtomicInteger
+import java.io as ji
+import java.util.jar as juj
+import java.util as ju
 
 import encodings.Utf8
 
@@ -41,12 +45,54 @@ extends Stdout:
 trait App:
   def main(using CommandLine): ExitStatus
 
+/** This must be written without using Scala because it has to be run before Scala classes are
+  * available. */
+class ResourceClassloader(resource: String, parent: ClassLoader) extends ClassLoader():
+  private val classes: ju.HashMap[String, Array[Byte]] = ju.HashMap[String, Array[Byte]]()
+  
+  private val jarStream: juj.JarInputStream =
+    juj.JarInputStream(parent.getResourceAsStream(resource).nn)
+  
+  override def loadClass(name: String): Class[?] =
+    try parent.loadClass(name).nn
+    catch case err: ClassNotFoundException => findClass(name)
+  
+  override def findClass(name: String): Class[?] =
+    if classes.containsKey(name) then
+      val data: Array[Byte] = classes.get(name).nn
+      defineClass(name, data, 0, data.length, null).nn
+    else throw new ClassNotFoundException()
+
+  while
+    val entry: juj.JarEntry | Null = jarStream.getNextJarEntry()
+    if entry == null then false
+    else
+      val name: String =
+        if entry.getName.nn.endsWith(".class")
+        then entry.getName.nn.replaceAll("/", ".").nn.substring(0, entry.getName.nn.length - 6).nn
+        else entry.getName.nn
+      
+      val array: Array[Byte] = new Array[Byte](entry.getSize.toInt)
+      jarStream.read(array, 0, entry.getSize.toInt)
+      classes.put(name, array)
+      true
+  do ()
+
 trait Daemon() extends App:
   daemon =>
 
   private val spawnCount: AtomicInteger = AtomicInteger(0)
 
+  def preloadNestedJar: Text | Null = null
+
   final def main(args: IArray[Text]): Unit =
+    preloadNestedJar match
+      case null => ()
+      case resource =>
+        val thread = Thread.currentThread.nn
+        val classloader = new ResourceClassloader(resource.nn.s, thread.getContextClassLoader.nn)
+        thread.setContextClassLoader(classloader)
+
     args.to(List) match
       case t"::start::" :: script :: fifo :: Int(pid) :: Int(watch) :: Nil =>
         val runnable: Runnable = () => server(script, fifo, pid, watch)
