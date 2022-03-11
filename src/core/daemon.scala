@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.io as ji
 import java.util.jar as juj
 import java.util as ju
+import java.lang.reflect as jlr
 
 import encodings.Utf8
 
@@ -54,10 +55,12 @@ class ResourceClassloader(resource: String, parent: ClassLoader) extends ClassLo
     juj.JarInputStream(parent.getResourceAsStream(resource).nn)
   
   override def loadClass(name: String): Class[?] =
-    try parent.loadClass(name).nn
+    System.out.nn.println("loadClass: "+name)
+    try super.loadClass(name).nn
     catch case err: ClassNotFoundException => findClass(name)
   
   override def findClass(name: String): Class[?] =
+    System.out.nn.println("findClass: "+name)
     if classes.containsKey(name) then
       val data: Array[Byte] = classes.get(name).nn
       defineClass(name, data, 0, data.length, null).nn
@@ -69,30 +72,35 @@ class ResourceClassloader(resource: String, parent: ClassLoader) extends ClassLo
     else
       val name: String =
         if entry.getName.nn.endsWith(".class")
-        then entry.getName.nn.replaceAll("/", ".").nn.substring(0, entry.getName.nn.length - 6).nn
+        then entry.getName.nn.substring(0, entry.getName.nn.length - 6).nn
         else entry.getName.nn
       
-      val array: Array[Byte] = new Array[Byte](entry.getSize.toInt)
-      jarStream.read(array, 0, entry.getSize.toInt)
-      classes.put(name, array)
+      System.out.nn.println("Classloading "+name)
+      
+      if entry.getSize >= 0 then
+        val array: Array[Byte] = new Array[Byte](entry.getSize.toInt)
+        jarStream.read(array, 0, entry.getSize.toInt)
+        classes.put(name, array)
+
       true
   do ()
+
+trait BootstrapClassloader(className: String, jarFile: String):
+  
+  def main(args: Array[String]): Unit =
+    val thread = Thread.currentThread.nn
+    System.out.nn.println("Setting classloader on thread "+thread.getName)
+    thread.setContextClassLoader(ResourceClassloader(jarFile, ClassLoader.getSystemClassLoader.nn))
+    
+    val method = Class.forName(className).nn.getMethod("main", Class.forName("[Ljava.lang.String;")).nn
+    method.invoke(null, args)
 
 trait Daemon() extends App:
   daemon =>
 
   private val spawnCount: AtomicInteger = AtomicInteger(0)
-
-  def preloadNestedJar: Text | Null = null
-
+  
   final def main(args: IArray[Text]): Unit =
-    preloadNestedJar match
-      case null => ()
-      case resource =>
-        val thread = Thread.currentThread.nn
-        val classloader = new ResourceClassloader(resource.nn.s, thread.getContextClassLoader.nn)
-        thread.setContextClassLoader(classloader)
-
     args.to(List) match
       case t"::start::" :: script :: fifo :: Int(pid) :: Int(watch) :: Nil =>
         val runnable: Runnable = () => server(script, fifo, pid, watch)
@@ -146,6 +154,10 @@ trait Daemon() extends App:
       
       def spawn(): Unit =
         val runnable: Runnable = () =>
+          val thread = Thread.currentThread.nn
+          System.out.nn.println("Current classloader is "+thread.getContextClassLoader)
+          System.out.nn.println("Setting classloader on thread "+thread.getName)
+          thread.setContextClassLoader(ResourceClassloader("base.jar", ClassLoader.getSystemClassLoader.nn))
           lazy val out = Fifo((runDir.otherwise(sys.exit(10)) / t"$script-$pid.stdout.sock").file(Expect))
           try
             val script = scriptFile.otherwise(sys.exit(10)).name
