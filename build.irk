@@ -7,10 +7,15 @@
     {
       "base": "../profanity",
       "url": "https://github.com/propensive/profanity"
+    },
+    {
+      "base": "../probably",
+      "url": "https://github.com/propensive/probably"
     }
   ],
   "imports": [
     "../joviality/build.irk",
+    "../probably/build.irk",
     "../profanity/build.irk"
   ],
   "publishing": {
@@ -33,7 +38,7 @@
   },
   "modules": [
     {
-      "name": "Exoskeleton",
+      "name": "Exoskeleton App",
       "id": "exoskeleton/core",
       "links": [
         "joviality/core", "profanity/core"
@@ -47,6 +52,41 @@
       ],
       "docs": [
         "doc"
+      ]
+    },
+    {
+      "name": "Exoskeleton Tests",
+      "id": "exoskeleton/test",
+      "links": [
+        "probably/cli",
+        "exoskeleton/cli"
+      ],
+      "sources": [
+        "src/test"
+      ],
+      "version": "0.4.0",
+      "resources": [
+      ],
+      "docs": [
+      ],
+      "exec": {
+        "browsers": [],
+        "start": "exoskeleton.Tests"
+      }
+    },
+    {
+      "name": "Exoskeleton CLI",
+      "id": "exoskeleton/cli",
+      "links": [
+        "gossamer/core"
+      ],
+      "sources": [
+        "src/cli"
+      ],
+      "version": "0.4.0",
+      "resources": [
+      ],
+      "docs": [
       ]
     }
   ]
